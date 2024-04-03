@@ -209,7 +209,7 @@ subroutine calculate_rate_exc
            do n=1,nquant
               write(105,*) c_tr(n,i),c_tr(n,j),c_tr(n,j),c_tr(n,i),curr_time*1.d15
               write(106,*) R(i,j) 
-              RR(i,j)=RR(i,j)+c_tr(i,n)*c_tr(n,j)*c_tr(j,n)*c_tr(n,i)*R(i,j)
+              RR(i,j)=RR(i,j)+c_tr(n,i)*c_tr(n,j)*c_tr(n,j)*c_tr(n,i)*R(i,j)
            enddo
            write(102,*) RR(i,j),RR(j,i),curr_time*1.d15
          endif
