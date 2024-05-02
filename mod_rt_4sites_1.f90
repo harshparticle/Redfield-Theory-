@@ -80,7 +80,7 @@ subroutine setup
       seed(i)=seed2(2)*(i/2+34-i**3)
    enddo
    call random_seed(put=seed)
-   !-------------------------------------------------------------------------------------
+   !-d------------------------------------------------------------------------------------
 
 end subroutine setup
 !---------- ----------------------------------------------------------------------------
@@ -88,19 +88,21 @@ end subroutine setup
 subroutine main
    implicit none
    integer i,j,k
-   ita=0.005
-   ita1=0.006
+   ita=0.0005
+   ita1=0.0006
    call setup_parameters
    call init_cond
      
   
-   open(100,file="sigma_11.out")
+   open(100,file="sigma.out")
    do i=1,nsteps
       call write_sigma
       call evolve
    enddo
   
-   
+   robustness_parameter=(real(sigma_diab(4,4)))*(exp(-((1/nsteps)*(p2collapse))))*(exp(-((1/nsteps)*(p3collapse))))
+   print*,"The robustness is"
+   print*,  robustness_parameter
    close(100)
    
 
@@ -116,14 +118,19 @@ subroutine setup_parameters
 
     gamma=1/25.d-15
     temperature=77.d0
-    lambda=35*wave_to_J/pi
+    lambda=859.07*wave_to_J/pi
 
-    H_diab(1,1)=510.d0*wave_to_J
-    H_diab(2,2)=390.d0*wave_to_J
-    H_diab(3,3)=310.d0*wave_to_J
-    H_diab(1,2)=50.d0*wave_to_J  ; H_diab(2,1)=H_diab(1,2)
-    H_diab(1,3)=0.0d0*wave_to_J ; H_diab(3,1)=H_diab(1,3)
-    H_diab(2,3)=30.8d0*wave_to_J  ; H_diab(3,2)=H_diab(2,3)
+
+    H_diab(1,1)=21.6d0*wave_to_J
+    H_diab(2,2)=714.5d0*wave_to_J
+    H_diab(3,3)=-119.59d0*wave_to_J
+    H_diab(4,4)=-319.59d0*wave_to_J
+    H_diab(1,2)=39.85d0*wave_to_J  ;  H_diab(2,1)=H_diab(1,2)
+    H_diab(1,3)=-15.73d0*wave_to_J     ;  H_diab(3,1)=H_diab(1,3)
+    H_diab(1,4)=0.d0*wave_to_J      ; H_diab(4,1)=H_diab(1,4)
+    H_diab(2,3)=-67.03d0*wave_to_J   ;  H_diab(3,2)=H_diab(2,3)
+    H_diab(2,4)=0.d0*wave_to_J      ;  H_diab(4,2)=H_diab(2,4)
+    H_diab(3,4)=2.927d0*wave_to_J   ;  H_diab(4,3)=H_diab(3,4)
 
     do i=1,nquant
        lambda_diab(i,i)=lambda*pi
@@ -139,20 +146,18 @@ end subroutine setup_parameters
 subroutine init_cond
    implicit none
    
-  
+   p2collapse=0.d0
+   p3collapse=0.d0
    sigma_diab=0.d0
    sigma_diab(1,1)=1.d0
-
+   
+   print*, c_tr
    print*, c_tr(1,1)
-   print*, c_tr(2,2)
-   print*, c_tr(3,3)
-   print*, c_tr(1,2)
-   print*, c_tr(1,3)
    print*, c_tr(2,1)
-   print*, c_tr(2,3)
    print*, c_tr(3,1)
-   print*, c_tr(3,2)
- 
+
+
+  
    sigma=matmul(transpose(c_tr),matmul(sigma_diab,c_tr))
 
    curr_time=0.d0
@@ -168,8 +173,8 @@ subroutine evolve
 
     call calculate_sigmadot(sigma_dot)
    
-    
-    
+    p2collapse=p2collapse+(real(sigma_diab(2,2))*dt*1.d15)
+    p3collapse=p3collapse+(real(sigma_diab(3,3))*dt*1.d15)
     
     sigma=sigma+sigma_dot*dt
     curr_time=curr_time+dt
@@ -266,7 +271,7 @@ subroutine write_sigma
    enddo
    sigma_diab=matmul(c_tr,matmul(sigma_exc,transpose(c_tr)))
 
-   write(100,*) curr_time*1.d15,real(sigma_diab(1,1)),real(sigma_diab(2,2)),real(sigma_diab(3,3))
+   write(100,*) curr_time*1.d15,real(sigma_diab(1,1)),real(sigma_diab(2,2)),real(sigma_diab(3,3)),real(sigma_diab(4,4))
   
      
 end subroutine write_sigma
